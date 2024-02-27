@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../components/dialog_box.dart';
 import '../components/todo_tile.dart';
 
 class HomePage extends StatefulWidget {
@@ -9,10 +10,44 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _controller = TextEditingController();
+
   List toDoList = [
     ["Make Tutorial", false],
     ["Do Exercise", false],
   ];
+
+  void checkBoxChanged(bool? value, int index) {
+    setState(() {
+      toDoList[index][1] = !toDoList[index][1];
+    });
+  }
+
+  void saveNewTask() {
+    setState(() {
+      toDoList.add([_controller.text, false]);
+      _controller.clear();
+    });
+    Navigator.of(context).pop();
+  }
+
+  void createNewTask() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return DialogBox(
+            controller: _controller,
+            onSave: saveNewTask,
+            onCancel: () => Navigator.of(context).pop(),
+          );
+        });
+  }
+
+  void deleteTask(int index) {
+    setState(() {
+      toDoList.removeAt(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,19 +58,19 @@ class _HomePageState extends State<HomePage> {
           centerTitle: true,
           backgroundColor: Colors.yellow,
         ),
-        body: ListView.builder(itemBuilder: itemBuilder)
-        // body: ListView(
-        //   children: [
-        //     TodoTile(
-        //         taskName: 'Make Tutorial',
-        //         taskCompleted: true,
-        //         onChanged: (value) {}),
-        //     TodoTile(
-        //         taskName: 'Do Exercise',
-        //         taskCompleted: false,
-        //         onChanged: (value) {}),
-        //   ],
-        // ),
-        );
+        floatingActionButton: FloatingActionButton(
+          onPressed: createNewTask,
+          child: Icon(Icons.add),
+        ),
+        body: ListView.builder(
+            itemCount: toDoList.length,
+            itemBuilder: (context, index) {
+              return TodoTile(
+                taskName: toDoList[index][0],
+                taskCompleted: toDoList[index][1],
+                onChanged: (value) => checkBoxChanged(value, index),
+                deleteFunction: (context) => deleteTask(index),
+              );
+            }));
   }
 }
